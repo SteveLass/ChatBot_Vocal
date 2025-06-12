@@ -1,0 +1,5 @@
+streamlit
+speechrecognition
+nltk
+pyttsx3
+pyaudio
