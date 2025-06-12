@@ -5,8 +5,8 @@ from nltk.chat.util import Chat, reflections
 import pyttsx3
 import threading
 
-# Télécharger les ressources NLTK nécessaires
-nltk.download('punkt')
+# Télécharger les ressources NLTK nécessaires (exécution une seule fois)
+nltk.download('punkt', quiet=True)
 
 # Paires de conversation pour le chatbot
 pairs = [
@@ -20,19 +20,21 @@ pairs = [
 # Création du chatbot NLTK
 chatbot = Chat(pairs, reflections)
 
-# Fonction pour synthèse vocale en thread (non bloquante)
+# Initialisation unique du moteur TTS
+engine = pyttsx3.init()
+engine.setProperty('rate', 160)
+# Choix voix française si disponible
+for voice in engine.getProperty('voices'):
+    if "fr" in voice.languages or "french" in voice.name.lower():
+        engine.setProperty('voice', voice.id)
+        break
+
+# Fonction speak avec thread pour éviter blocage Streamlit et RuntimeError
 def speak(text):
     def run():
-        engine = pyttsx3.init()
-        engine.setProperty('rate', 160)
-        # Choix voix française si disponible
-        for voice in engine.getProperty('voices'):
-            if "fr" in voice.languages or "french" in voice.name.lower():
-                engine.setProperty('voice', voice.id)
-                break
         engine.say(text)
         engine.runAndWait()
-    threading.Thread(target=run).start()
+    threading.Thread(target=run, daemon=True).start()
 
 # Fonction reconnaissance vocale avec gestion d’erreurs
 def speech_to_text():
